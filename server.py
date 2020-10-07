@@ -1,4 +1,24 @@
-
+#/***********************************************************************;
+#* Project           : udpclient-server Assignment 1
+#*
+#* Program name      : "Server.py"
+#*
+#* Author            : Iansmathew
+#* 
+#* Student Number    : 101187910
+#*
+#* Date created      : 20/10/03
+#*
+#* Description       : Connect with EC2 server and relay player position data.
+#*
+#* Last modified     : 20/10/07
+#*
+#* Revision History  :
+#*
+#*Date        Author Ref    Revision (Date in YYYYMMDD format) 
+#*20/10/07    David Gasinec        Edited Script 
+#*
+#|**********************************************************************/
 import random
 import socket
 import time
@@ -38,6 +58,8 @@ def connectionLoop(sock):
             # update the heartbeat value if data dictionary has a key called 'heartbeat'
             if 'heartbeat' in data:
                 clients[addr]['lastBeat'] = datetime.now()
+                if data['cmd'] == 5:
+                    clients[addr]['position'] = data['position']
         else:
             # if there is a key called 'connect' in data dictionary
             if 'connect' in data:
@@ -46,7 +68,7 @@ def connectionLoop(sock):
                 # update the last beat of the client object
                 clients[addr]['lastBeat'] = datetime.now()
                 # add a field called color
-                clients[addr]['color'] = 0
+                clients[addr]['position'] = 0
                 # create a message object with a command value and an array of player objects
                 message = {"cmd": 0, "players": []}  # {"id":addr}}
 
@@ -54,8 +76,8 @@ def connectionLoop(sock):
                 p = {}
                 # add a field called 'id' that is the string version of (IP, PORT)
                 p['id'] = str(addr)
-                # create a field called color
-                p['color'] = 0
+                # create a field called color/ changed to position
+                p['position'] = 0
                 # add the object to the player array
                 message['players'].append(p)
 
@@ -79,7 +101,7 @@ def connectionLoop(sock):
                     # set the id to the current key
                     player['id'] = str(c)
                     # set the color to the key's properties
-                    player['color'] = clients[c]['color']
+                    player['position'] = clients[c]['position']
                     # add it to the game state
                     GameState['players'].append(player)
                     # send the message object containg the new connected client to the previously connected clients
@@ -143,14 +165,11 @@ def gameLoop(sock):
             # create a player object
             player = {}
             # assign a random color
-            clients[c]['color'] = {
-                "R": random.random(),
-                "G": random.random(),
-                "B": random.random()
-            }
+            #clients[c]['color'] = { "R": random.random(),"G": random.random(),"B": random.random()
+            #}
             # fill the player details
             player['id'] = str(c)
-            player['color'] = clients[c]['color']
+            player['position'] = clients[c]['position']
             GameState['players'].append(player)
         s = json.dumps(GameState, separators=(",", ":"))
         #      print(s)
